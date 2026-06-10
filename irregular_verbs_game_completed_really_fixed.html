@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Irregular Verbs Game</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, #dff5ff 0, transparent 32%),
+        radial-gradient(circle at bottom right, #c7e8ff 0, transparent 34%),
+        linear-gradient(135deg, #f5fcff, #dbefff);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #12324a;
+      padding: 18px;
+    }
+
+    .card {
+      width: min(92vw, 760px);
+      min-height: 540px;
+      background: rgba(255, 255, 255, 0.88);
+      border: 2px solid rgba(163, 216, 244, 0.75);
+      border-radius: 36px;
+      box-shadow: 0 24px 70px rgba(62, 137, 180, 0.23);
+      padding: 44px 30px 38px;
+      text-align: center;
+      backdrop-filter: blur(8px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      width: 210px;
+      height: 210px;
+      border-radius: 50%;
+      background: rgba(180, 225, 255, 0.35);
+      top: -86px;
+      right: -70px;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      width: 170px;
+      height: 170px;
+      border-radius: 50%;
+      background: rgba(200, 239, 255, 0.48);
+      bottom: -72px;
+      left: -54px;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hidden { display: none !important; }
+
+    .title {
+      font-size: clamp(38px, 8vw, 72px);
+      font-weight: 900;
+      margin: 46px 0 14px;
+      color: #0f3d5c;
+      text-shadow: 0 6px 0 rgba(168, 218, 246, 0.5);
+    }
+
+    .subtitle {
+      font-size: 22px;
+      font-weight: 700;
+      color: #3c7fa5;
+      margin-bottom: 34px;
+    }
+
+    .name-input {
+      width: min(100%, 430px);
+      border: 2px solid #a9ddf7;
+      border-radius: 22px;
+      padding: 18px 20px;
+      font-size: 22px;
+      text-align: center;
+      color: #12324a;
+      background: #f5fcff;
+      outline: none;
+      box-shadow: 0 10px 22px rgba(69, 143, 187, 0.12);
+      margin-bottom: 18px;
+    }
+
+    .name-input:focus {
+      border-color: #3ba7e3;
+      box-shadow: 0 0 0 5px rgba(59, 167, 227, 0.16);
+    }
+
+    .counter, .student-badge {
+      padding: 10px 20px;
+      border-radius: 999px;
+      background: #e3f5ff;
+      color: #26739f;
+      font-size: 18px;
+      font-weight: 800;
+      border: 1px solid #b9e4fb;
+    }
+
+    .game-header {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 26px;
+    }
+
+    .verb {
+      font-size: clamp(72px, 17vw, 150px);
+      font-weight: 900;
+      letter-spacing: 3px;
+      margin: 42px 0 18px;
+      text-transform: uppercase;
+      color: #0f3d5c;
+      text-shadow: 0 7px 0 rgba(168, 218, 246, 0.48);
+    }
+
+    .answer {
+      min-height: 58px;
+      font-size: clamp(32px, 8vw, 54px);
+      font-weight: 900;
+      color: #1d83c1;
+      margin: 14px 0 16px;
+    }
+
+    .feedback {
+      min-height: 38px;
+      color: #149668;
+      font-size: 26px;
+      font-weight: 900;
+      margin: 12px 0 24px;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    button {
+      border: none;
+      border-radius: 20px;
+      padding: 17px 24px;
+      font-size: 18px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.16s ease, opacity 0.2s ease;
+      box-shadow: 0 10px 22px rgba(69, 143, 187, 0.18);
+    }
+
+    button:active { transform: scale(0.97); }
+
+    .primary {
+      background: linear-gradient(135deg, #3ba7e3, #167fbd);
+      color: white;
+    }
+
+    .secondary {
+      background: #d8f1ff;
+      color: #136a9d;
+      border: 1px solid #a9ddf7;
+    }
+
+    .danger {
+      background: #fff0f5;
+      color: #bd4771;
+      border: 1px solid #ffd0df;
+    }
+
+    .error {
+      min-height: 28px;
+      color: #bd4771;
+      font-weight: 800;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 520px) {
+      .card {
+        min-height: 500px;
+        padding: 34px 18px 30px;
+        border-radius: 28px;
+      }
+
+      button {
+        width: 100%;
+        max-width: 310px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="content">
+      <section id="startScreen">
+        <div class="title">Irregular Verbs</div>
+        <div class="subtitle">Введите имя, чтобы начать игру</div>
+
+        <input id="studentNameInput" class="name-input" type="text" placeholder="Имя ученика" autocomplete="off" />
+
+        <div class="buttons">
+          <button id="enterGameBtn" class="primary">Войти в игру</button>
+        </div>
+
+        <div id="nameError" class="error"></div>
+      </section>
+
+      <section id="gameScreen" class="hidden">
+        <div class="game-header">
+          <div id="studentBadge" class="student-badge"></div>
+          <div id="counter" class="counter">1 / 8</div>
+        </div>
+
+        <div id="verb" class="verb">SEE</div>
+        <div id="answer" class="answer"></div>
+        <div id="feedback" class="feedback"></div>
+
+        <div class="buttons">
+          <button id="startBtn" class="primary">Начать запись</button>
+          <button id="answerBtn" class="secondary">Посмотреть ответ</button>
+          <button id="restartBtn" class="danger hidden">Начать заново</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const LOG_URL = "https://script.google.com/macros/s/AKfycbze5szpz0ury7t9AzXgypraI0bqWnb_beGCryE4gfIZTJ8y7giHTQP54U3Mqy6PtOh-Cg/exec";
+
+    const verbs = [
+      { base: "see", past: "saw", accepted: ["saw", "so"] },
+      { base: "buy", past: "bought", accepted: ["bought", "bot", "boat"] },
+      { base: "sit", past: "sat", accepted: ["sat", "set"] },
+      { base: "say", past: "said", accepted: ["said", "sed", "sade", "sad", "set"] },
+      { base: "tell", past: "told", accepted: ["told", "tolled"] },
+      { base: "make", past: "made", accepted: ["made", "maid"] },
+      { base: "take", past: "took", accepted: ["took", "tok"] },
+      { base: "speak", past: "spoke", accepted: ["spoke"] }
+    ];
+
+    let index = 0;
+    let recognition = null;
+    let isChangingWord = false;
+    let ignoreUntil = 0;
+    let lastAcceptedAt = 0;
+    let studentName = "";
+    let gameCompletedLogged = false;
+
+    const startScreen = document.getElementById("startScreen");
+    const gameScreen = document.getElementById("gameScreen");
+    const studentNameInput = document.getElementById("studentNameInput");
+    const enterGameBtn = document.getElementById("enterGameBtn");
+    const nameError = document.getElementById("nameError");
+    const studentBadge = document.getElementById("studentBadge");
+
+    const verbEl = document.getElementById("verb");
+    const answerEl = document.getElementById("answer");
+    const feedbackEl = document.getElementById("feedback");
+    const counterEl = document.getElementById("counter");
+    const startBtn = document.getElementById("startBtn");
+    const answerBtn = document.getElementById("answerBtn");
+    const restartBtn = document.getElementById("restartBtn");
+
+    function sendLog(pageName) {
+      const params = new URLSearchParams();
+      params.append("name", studentName || "No name");
+      params.append("game", "Irregular verbs");
+      params.append("page", pageName);
+
+      fetch(LOG_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+        body: params.toString()
+      }).catch(() => {});
+    }
+
+    function normalize(text) {
+      return text
+        .toLowerCase()
+        .replace(/[.,!?;:]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function enterGame() {
+      const name = studentNameInput.value.trim();
+
+      if (!name) {
+        nameError.textContent = "Введите имя";
+        studentNameInput.focus();
+        return;
+      }
+
+      studentName = name;
+      gameCompletedLogged = false;
+      studentBadge.textContent = studentName;
+      startScreen.classList.add("hidden");
+      gameScreen.classList.remove("hidden");
+      nameError.textContent = "";
+
+      sendLog("Game opened");
+      render();
+    }
+
+    function render() {
+      if (index >= verbs.length) {
+        verbEl.textContent = "DONE!";
+        answerEl.textContent = "";
+        feedbackEl.textContent = "Готово!";
+        counterEl.textContent = `${verbs.length} / ${verbs.length}`;
+        answerBtn.classList.add("hidden");
+        restartBtn.classList.remove("hidden");
+        return;
+      }
+
+      const current = verbs[index];
+      verbEl.textContent = current.base.toUpperCase();
+      answerEl.textContent = "";
+      feedbackEl.textContent = "";
+      counterEl.textContent = `${index + 1} / ${verbs.length}`;
+      answerBtn.classList.remove("hidden");
+      restartBtn.classList.add("hidden");
+    }
+
+    function finishGame() {
+      if (!gameCompletedLogged) {
+        gameCompletedLogged = true;
+        sendLog("Game completed");
+      }
+
+      index = verbs.length;
+      render();
+    }
+
+    function speakAnswer() {
+      const current = verbs[index];
+      if (!current) return;
+
+      answerEl.textContent = current.past;
+
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(current.past);
+        utterance.lang = "en-US";
+        utterance.rate = 0.85;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function isCorrect(transcript) {
+      if (index >= verbs.length) return false;
+      const current = verbs[index];
+      const cleaned = normalize(transcript);
+      const words = cleaned.split(" ");
+
+      return current.accepted.some(option => {
+        const accepted = normalize(option);
+        return cleaned === accepted || words.includes(accepted);
+      });
+    }
+
+    function goNextOnce() {
+      const now = Date.now();
+
+      if (isChangingWord) return;
+      if (now < ignoreUntil) return;
+      if (now - lastAcceptedAt < 1400) return;
+
+      isChangingWord = true;
+      lastAcceptedAt = now;
+      ignoreUntil = now + 1800;
+
+      feedbackEl.textContent = "Правильно!";
+      answerEl.textContent = "";
+
+      setTimeout(() => {
+        if (index === verbs.length - 1) {
+          finishGame();
+        } else {
+          index++;
+          render();
+        }
+
+        setTimeout(() => {
+          isChangingWord = false;
+          ignoreUntil = Date.now() + 500;
+        }, 500);
+      }, 650);
+    }
+
+    function setupRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        feedbackEl.textContent = "Откройте игру в Google Chrome";
+        return null;
+      }
+
+      const rec = new SpeechRecognition();
+      rec.lang = "en-US";
+      rec.continuous = true;
+      rec.interimResults = false;
+      rec.maxAlternatives = 5;
+
+      rec.onstart = () => {
+        startBtn.textContent = "Микрофон включён";
+        startBtn.disabled = true;
+        startBtn.style.opacity = "0.8";
+      };
+
+      rec.onresult = (event) => {
+        if (Date.now() < ignoreUntil || isChangingWord) return;
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const alternatives = Array.from(event.results[i]).map(alt => alt.transcript);
+
+          if (alternatives.some(isCorrect)) {
+            goNextOnce();
+            break;
+          }
+        }
+      };
+
+      rec.onerror = () => {};
+
+      rec.onend = () => {
+        if (index < verbs.length) {
+          try {
+            recognition.start();
+          } catch (e) {
+            startBtn.disabled = false;
+            startBtn.textContent = "Начать запись";
+            startBtn.style.opacity = "1";
+          }
+        }
+      };
+
+      return rec;
+    }
+
+    enterGameBtn.addEventListener("click", enterGame);
+
+    studentNameInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") enterGame();
+    });
+
+    startBtn.addEventListener("click", () => {
+      if (!recognition) recognition = setupRecognition();
+      if (!recognition) return;
+
+      ignoreUntil = Date.now() + 600;
+
+      try {
+        recognition.start();
+      } catch (e) {}
+    });
+
+    answerBtn.addEventListener("click", speakAnswer);
+
+    restartBtn.addEventListener("click", () => {
+      index = 0;
+      gameCompletedLogged = false;
+      isChangingWord = false;
+      ignoreUntil = Date.now() + 800;
+      lastAcceptedAt = 0;
+      render();
+
+      if (recognition) {
+        try {
+          recognition.start();
+        } catch (e) {}
+      }
+    });
+
+    studentNameInput.focus();
+  </script>
+</body>
+</html>
